@@ -1,0 +1,126 @@
+/* styles.css */
+@import 'antd/dist/reset.css';
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f8ff; /* 浅蓝色背景 */
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .header {
+    color: #4682b4; /* 钢蓝色标题 */
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .new-item-form {
+    background-color: #e6f2ff; /* 更浅的蓝色表单背景 */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+  }
+  
+  .form-row {
+    margin-bottom: 15px;
+  }
+  
+  .form-row label {
+    display: block;
+    margin-bottom: 5px;
+    color: #5f9ea0; /* 卡其色标签文字 */
+  }
+  
+  .form-row input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #add8e6; /* 浅蓝色边框 */
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: #f8fbff;
+  }
+  
+  .btn {
+    background-color: #87ceeb; /* 天蓝色按钮 */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  
+  .btn:hover {
+    background-color: #6495ed; /* 悬停时稍深的蓝色 */
+  }
+  
+  .btn-danger {
+    background-color: #f08080; /* 保持删除按钮为浅珊瑚色以形成对比 */
+  }
+  
+  .btn-danger:hover {
+    background-color: #cd5c5c;
+  }
+  
+  .list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .list li {
+    background-color: #e6f2ff;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #4682b4;
+  }
+  
+  .list li label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .list li input[type="checkbox"] {
+    margin-right: 10px;
+    accent-color: #4682b4; /* 复选框颜色与主题匹配 */
+  }
+
+  /* 认证相关样式 */
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: #e6f2ff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.auth-container h2 {
+  color: #4682b4;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #add8e6;
+}
+
+.logout-btn {
+  color: #f08080;
+}
+
+.logout-btn:hover {
+  color: #cd5c5c;
+}
