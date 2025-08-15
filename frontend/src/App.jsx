@@ -1,19 +1,24 @@
 // src/App.jsx
 import { useState, useEffect } from "react";
-import { Empty, Button, message } from "antd";
-import "./styles.css";
+import { message } from "antd";
 import Auth from "./components/Auth/Auth";
+import TodoForm from "./components/TodoForm/TodoForm";
+import TodoList from "./components/TodoList/TodoList";
+import UserHeader from "./components/UserHeader/UserHeader";
 import api from "./api";
+import "./styles.css";
 
+/**
+ * 主应用组件
+ * 管理用户认证、待办事项数据流，并协调各子组件通信
+ */
 export default function App() {
-  const [newItem, setNewItem] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [todos, setTodos] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 检查本地存储中的认证状态
+  // 页面加载时检查本地存储中的登录状态
   useEffect(() => {
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
@@ -24,17 +29,15 @@ export default function App() {
     }
   }, []);
 
+  // 从 API 加载待办事项列表
   const loadTodos = async () => {
     try {
       const data = await api.getTodos();
-      console.log("API Response - Todos:", data); // 👈 调试：查看实际数据
-
-      // ✅ 防御性检查：确保 data 是数组
       if (Array.isArray(data)) {
         setTodos(data);
       } else {
         console.error("Expected array from getTodos, got:", data);
-        setTodos([]); // 安全兜底
+        setTodos([]);
         message.error("Failed to load todos: Invalid data format");
       }
     } catch (error) {
@@ -43,6 +46,7 @@ export default function App() {
     }
   };
 
+  // 处理用户登录逻辑
   const handleLogin = async (userData) => {
     setLoading(true);
     try {
@@ -51,14 +55,12 @@ export default function App() {
         password: userData.password,
       });
 
-      // 保存 token 和用户信息
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setIsAuthenticated(true);
       setUser(data.user);
-
       message.success("Login successful");
-      loadTodos(); // 登录后加载待办事项
+      loadTodos();
     } catch (err) {
       message.error(err.response?.data?.message || "Login failed");
     } finally {
@@ -66,6 +68,7 @@ export default function App() {
     }
   };
 
+  // 处理用户注册逻辑
   const handleRegister = async (userData) => {
     setLoading(true);
     try {
@@ -86,6 +89,7 @@ export default function App() {
     }
   };
 
+  // 处理用户登出
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -95,20 +99,14 @@ export default function App() {
     message.success("Logged out successfully");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!newItem.trim()) return;
-
+  // 添加新任务
+  const addTodo = async (title, dueDate) => {
     try {
       const newTodo = await api.createTodo({
-        title: newItem,
+        title,
         dueDate: dueDate || null,
       });
 
-      // 🔍 调试：打印 createTodo 的响应
-      console.log("🚀 createTodo Response:", newTodo);
-
-      // ✅ 检查返回的对象是否包含必要字段
       if (
         newTodo &&
         typeof newTodo === "object" &&
@@ -116,21 +114,19 @@ export default function App() {
         newTodo._id !== undefined
       ) {
         setTodos([...todos, newTodo]);
-        setNewItem("");
-        setDueDate("");
         message.success("Todo added successfully");
       } else {
-        console.error("❌ Invalid todo object from createTodo:", newTodo);
-        // 兜底：重新加载列表
+        console.error("Invalid todo object from createTodo:", newTodo);
         loadTodos();
         message.warning("Task created, but UI needs refresh.");
       }
     } catch (error) {
-      console.error("❌ Failed to add todo:", error);
+      console.error("Failed to add todo:", error);
       message.error("Failed to add todo");
     }
   };
 
+  // 切换任务完成状态
   const toggleTodo = async (id, completed) => {
     try {
       await api.updateTodo(id, { completed });
@@ -144,6 +140,7 @@ export default function App() {
     }
   };
 
+  // 删除任务
   const deleteTodo = async (id) => {
     try {
       await api.deleteTodo(id);
@@ -155,62 +152,7 @@ export default function App() {
     }
   };
 
-  // ✅ 防御性渲染：检查 todos 是否为数组
-  const renderTodos = () => {
-    if (!Array.isArray(todos) || todos.length === 0) {
-      return (
-        <div className="empty-state">
-          <Empty
-            description="No tasks yet"
-            styles={{
-              image: {
-                filter: "hue-rotate(180deg) saturate(1.5)",
-                marginBottom: 20,
-              },
-            }}
-          />
-        </div>
-      );
-    }
-    return todos.map((todo) => (
-      <li key={todo._id}>
-        {" "}
-        {/* ✅ 使用 todo._id 作为 key */}
-        <label>
-          <input
-            type="checkbox"
-            checked={todo.completed}
-            onChange={(e) => toggleTodo(todo._id, e.target.checked)}
-          />
-          <span
-            style={{
-              textDecoration: todo.completed ? "line-through" : "none",
-              color: todo.completed ? "#7b9eb1" : "#333",
-            }}
-          >
-            {todo.title} {/* ✅ 显示 title */}
-          </span>
-          <span
-            className="due-date"
-            style={{
-              marginLeft: "10px",
-              fontSize: "0.8rem",
-              color: getDateColor(todo.dueDate),
-            }}
-          >
-            {formatDueDate(todo.dueDate)}
-          </span>
-        </label>
-        <button
-          onClick={() => deleteTodo(todo._id)} // ✅ 传入 todo._id
-          className="btn btn-danger"
-        >
-          Delete
-        </button>
-      </li>
-    ));
-  };
-
+  // 未登录状态：显示认证组件
   if (!isAuthenticated) {
     return (
       <div className="app-container">
@@ -224,71 +166,13 @@ export default function App() {
     );
   }
 
+  // 已登录状态：显示任务界面
   return (
     <div className="app-container">
-      <div className="user-header">
-        <span>Welcome, {user?.username}</span>
-        <Button type="link" onClick={handleLogout} className="logout-btn">
-          Logout
-        </Button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="new-item-form">
-        <div className="form-row">
-          <label htmlFor="item">Task</label>
-          <input
-            type="text"
-            id="item"
-            value={newItem}
-            onChange={(e) => setNewItem(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="form-row">
-          <label htmlFor="dueDate">Due Date</label>
-          <input
-            type="date"
-            id="dueDate"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-          />
-        </div>
-
-        <button className="btn" type="submit">
-          Add Task
-        </button>
-      </form>
-
+      <UserHeader user={user} onLogout={handleLogout} />
+      <TodoForm onSubmit={addTodo} />
       <h1 className="header">Todo List</h1>
-
-      <ul className="list">{renderTodos()}</ul>
+      <TodoList todos={todos} onToggle={toggleTodo} onDelete={deleteTodo} />
     </div>
   );
-}
-
-// 辅助函数
-function formatDueDate(dateString) {
-  if (!dateString || dateString === "No deadline") return dateString;
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function getDateColor(dateString) {
-  if (!dateString || dateString === "No deadline") return "#5f9ea0";
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const dueDate = new Date(dateString);
-  dueDate.setHours(0, 0, 0, 0);
-
-  const diffDays = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return "#f08080";
-  if (diffDays === 0) return "#ffa500";
-  if (diffDays <= 3) return "#ffd700";
-  return "#4682b4";
 }
